@@ -16,18 +16,47 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private List<String> itemList;
-    private List<String> filteredList;
+    private List<Page> itemList;
+    private List<Page> filteredList;
     private MyAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // set up database
+        AppDatabase db = AppDatabase.getDatabase(this);
+        PageDao pageDao = db.pageDao();
+
+        // Load saved pages from DB
+        new Thread(() -> {
+            List<Page> pages = pageDao.getAllPages(); // Get all pages from DB
+
+            runOnUiThread(() -> {
+                itemList.clear();
+                itemList.addAll(pages);
+
+                filteredList.clear();
+                filteredList.addAll(pages);
+
+                // Sort alphabetically on initial load too
+                Collections.sort(filteredList, new Comparator<Page>() {
+                    @Override
+                    public int compare(Page p1, Page p2) {
+                        return p1.getTitle().compareToIgnoreCase(p2.getTitle());
+                    }
+                });
+
+                adapter.notifyDataSetChanged(); // Refresh list on UI
+            });
+        }).start();
 
         // set up toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -40,10 +69,10 @@ public class MainActivity extends AppCompatActivity {
 
         adapter = new MyAdapter(this, filteredList, new MyAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(String item) {
+            public void onItemClick(Page item) {
                 // Handle item click here
                 Intent intent = new Intent(MainActivity.this, WikiPage.class);
-                intent.putExtra("item_title", item); // pass the item title
+                intent.putExtra("item_title", item.getTitle()); // pass the item title
                 startActivity(intent);
             }
         });
@@ -63,8 +92,17 @@ public class MainActivity extends AppCompatActivity {
             builder.setPositiveButton("Add", (dialog, which) -> {
                 String itemName = input.getText().toString().trim();
                 if (!itemName.isEmpty()) {
-                    itemList.add(itemName); // add to full list
-                    filterList("");         // refresh filtered list (optional: you can pass last query)
+                    //add page to db
+                    new Thread(() -> {
+                        Page newPage = new Page(itemName);
+                        pageDao.insert(newPage);
+
+                        runOnUiThread(() -> {
+                            itemList.add(newPage);
+                            filterList("");
+                        });
+                    }).start();
+
                 }
             });
 
@@ -100,11 +138,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void filterList(String query) {
         filteredList.clear();
-        for (String item : itemList) {
-            if (item.toLowerCase().contains(query.toLowerCase())) {
-                filteredList.add(item);
+        for (Page page : itemList) {
+            if (page.getTitle().toLowerCase().contains(query.toLowerCase())) {
+                filteredList.add(page);
             }
         }
+        // Sort alphabetically by title, case-insensitive
+        Collections.sort(filteredList, new Comparator<Page>() {
+            @Override
+            public int compare(Page p1, Page p2) {
+                return p1.getTitle().compareToIgnoreCase(p2.getTitle());
+            }
+        });
+
         adapter.notifyDataSetChanged();
     }
 }

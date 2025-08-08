@@ -14,14 +14,14 @@ import java.util.List;
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     public interface OnItemClickListener {
-        void onItemClick(String item);
+        void onItemClick(Page page);
     }
 
-    private List<String> data;
+    private List<Page> data;
     private OnItemClickListener listener;
     private Context context;
 
-    public MyAdapter(Context context, List<String> data, OnItemClickListener listener) {
+    public MyAdapter(Context context, List<Page> data, OnItemClickListener listener) {
         this.data = data;
         this.listener = listener;
         this.context = context;
@@ -35,19 +35,17 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             textView = view.findViewById(R.id.text_item);
         }
 
-        public void bind(final String item, final OnItemClickListener listener) {
-            textView.setText(item);
+        public void bind(final Page page, final OnItemClickListener listener) {
+            textView.setText(page.getTitle());
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    listener.onItemClick(item);
+                    listener.onItemClick(page);
                 }
             });
         }
     }
-
-
 
     @NonNull
     @Override
