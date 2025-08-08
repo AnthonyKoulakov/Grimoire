@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#440870"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:titleTextColor="@android:color/white" />
+
+        <!-- Content -->
+        <EditText
+            android:id="@+id/editTextDocument"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="top|start"
+            android:padding="24dp"
+            android:background="#121212"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:hint="Start writing..."
+            android:inputType="textMultiLine|textCapSentences"
+            android:overScrollMode="ifContentScrolls"
+            android:scrollbars="vertical"
+            android:fadeScrollbars="false"
+            android:lineSpacingExtra="8dp"
+            android:maxLines="10000"
+            android:importantForAutofill="yes"
+            android:imeOptions="flagNoExtractUi"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:clickable="false"
+            android:cursorVisible="false"
+            android:longClickable="false"
+            android:textIsSelectable="true" />
+    </LinearLayout>
+
+    <!-- Floating Action Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_edit_toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="Add"
+        app:srcCompat="@android:drawable/ic_input_add" />
+
+</FrameLayout>
