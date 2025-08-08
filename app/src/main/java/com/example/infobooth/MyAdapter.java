@@ -5,26 +5,49 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.graphics.Color;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.content.ContextCompat;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     public interface OnItemClickListener {
         void onItemClick(Page page);
+        void onSelectionChanged(int selectedCount);
     }
 
     private List<Page> data;
     private OnItemClickListener listener;
     private Context context;
 
+    private final Set<Page> selected = new HashSet<>();
+    private boolean selectionMode = false;
+
     public MyAdapter(Context context, List<Page> data, OnItemClickListener listener) {
         this.data = data;
         this.listener = listener;
         this.context = context;
+    }
+
+    public boolean isSelectionMode(){
+        return selectionMode;
+    }
+    public Set<Page> getSelectedItems(){
+        return selected;
+    }
+    public void exitSelectionMode(){
+        selectionMode = false;
+        selected.clear();
+        notifyDataSetChanged();
+        listener.onSelectionChanged(0);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -35,14 +58,22 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             textView = view.findViewById(R.id.text_item);
         }
 
-        public void bind(final Page page, final OnItemClickListener listener) {
+        public void bind(final Page page, final boolean isSelected, final Supplier<Boolean> isSelectionMode, final OnItemClickListener listener, final Runnable toggleSelection) {
             textView.setText(page.getTitle());
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+            itemView.setBackgroundColor(isSelected ? Color.DKGRAY : Color.TRANSPARENT);
+
+            itemView.setOnClickListener(v -> {
+                if (isSelectionMode.get()) {
+                    toggleSelection.run();
+                } else {
                     listener.onItemClick(page);
                 }
+            });
+
+            itemView.setOnLongClickListener(v -> {
+                toggleSelection.run();
+                return true;
             });
         }
     }
@@ -52,13 +83,32 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public MyAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Inflate the custom item layout with bigger text
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_list, parent, false);  // <-- your new layout file
+                .inflate(R.layout.item_list, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bind(data.get(position), listener);
+        Page page= data.get(position);
+        boolean isSelected= selected.contains(page);
+
+        holder.bind(page, isSelected, () -> selectionMode, listener, () -> {
+            if (!selectionMode){
+                selectionMode = true;
+            }
+            if (selected.contains(page)){
+                selected.remove(page);
+            }else{
+                selected.add(page);
+            }
+            //exit if 0 selected
+            if (selected.isEmpty()){
+                exitSelectionMode();
+            }
+
+            notifyItemChanged(position);
+            listener.onSelectionChanged(selected.size());
+        });
     }
 
 
