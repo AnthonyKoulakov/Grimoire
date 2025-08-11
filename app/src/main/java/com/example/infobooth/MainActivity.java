@@ -142,13 +142,23 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public boolean onPrepareOptionsMenu(Menu menu){
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem deleteItem = menu.findItem(R.id.action_delete);
-        if(deleteItem != null){
-            deleteItem.setVisible(adapter.isSelectionMode());
+        MenuItem settingsItem = menu.findItem(R.id.action_settings);
+
+        boolean selectionMode = adapter.isSelectionMode();
+
+        if (deleteItem != null) {
+            deleteItem.setVisible(selectionMode);
         }
+        if (settingsItem != null) {
+            settingsItem.setVisible(!selectionMode);
+        }
+
         return super.onPrepareOptionsMenu(menu);
     }
+
 
     private void filterList(String query) {
         filteredList.clear();
@@ -195,6 +205,11 @@ public class MainActivity extends AppCompatActivity {
                     })
                     .setNegativeButton("Cancel", null)
                     .show();
+            return true;
+        }
+        if (id == R.id.action_settings){
+            // open settings menu
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);

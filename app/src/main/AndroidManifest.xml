@@ -23,6 +23,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".WikiPage" />
+        <activity android:name=".SettingsActivity" />
     </application>
 
 </manifest>

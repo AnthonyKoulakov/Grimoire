@@ -15,4 +15,10 @@
         app:showAsAction="ifRoom"
         android:visible="false" />
 
+    <item
+        android:id="@+id/action_settings"
+        android:title="Settings"
+        android:icon="@drawable/ic_settings"
+        app:showAsAction="always" />
+
 </menu>
