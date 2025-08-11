@@ -20,6 +20,23 @@ public class WikiPage extends AppCompatActivity {
         // Get the title passed from MainActivity
         String title = getIntent().getStringExtra("item_title");
 
+        //textfield
+        EditText editText = findViewById(R.id.editTextDocument);
+
+        // get page using title
+        new Thread(() -> {
+            // set up database
+            AppDatabase db = AppDatabase.getDatabase(this);
+            PageDao pageDao = db.pageDao();
+
+            Page page = pageDao.getPageByTitle(getIntent().getStringExtra("item_title"));
+            String content = page.getContent();
+            //put content into textfield
+            runOnUiThread(() -> {
+                editText.setText(content);
+            });
+        }).start();
+
         // Set up the toolbar
         Toolbar toolbar = findViewById(R.id.toolBar);
         setSupportActionBar(toolbar);
@@ -27,10 +44,6 @@ public class WikiPage extends AppCompatActivity {
             getSupportActionBar().setTitle(title);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-
-
-        //textfield
-        EditText editText = findViewById(R.id.editTextDocument);
 
         //edit button
         FloatingActionButton fab = findViewById(R.id.fab_edit_toggle);
@@ -50,7 +63,10 @@ public class WikiPage extends AppCompatActivity {
                 ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
 
             } else {
-                // Disable editing (save text if you want)
+                // Save
+                savePageContent(editText.getText().toString());
+
+                // Disable editing
                 editText.setFocusable(false);
                 editText.setFocusableInTouchMode(false);
                 editText.setCursorVisible(false);
@@ -72,4 +88,29 @@ public class WikiPage extends AppCompatActivity {
         onBackPressed();
         return true;
     }
+
+    // Saves on close
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Save content if in editing mode or just always save latest content
+        EditText editText = findViewById(R.id.editTextDocument);
+        savePageContent(editText.getText().toString());
+    }
+
+    private void savePageContent(String text) {
+        new Thread(() -> {
+            // set up database
+            AppDatabase db = AppDatabase.getDatabase(this);
+            PageDao pageDao = db.pageDao();
+
+            Page page = pageDao.getPageByTitle(getIntent().getStringExtra("item_title"));
+
+            if (page !=  null){
+                page.setContent(text);
+                pageDao.update(page);
+            }
+        }).start();
+    }
+
 }
