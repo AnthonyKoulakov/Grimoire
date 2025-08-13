@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.infobooth"
+    namespace = "com.example.Grimoire"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.infobooth"
+        applicationId = "com.example.Grimoire"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

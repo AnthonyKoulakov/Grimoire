@@ -1,4 +1,4 @@
-package com.example.infobooth;
+package com.example.Grimoire.Backend;
 
 import androidx.room.Dao;
 import androidx.room.Insert;

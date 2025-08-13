@@ -1,4 +1,4 @@
-package com.example.infobooth;
+package com.example.Grimoire.MainScreen;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,7 +9,9 @@ import android.graphics.Color;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.core.content.ContextCompat;
+
+import com.example.Grimoire.Backend.Page;
+import com.example.Grimoire.R;
 
 import java.util.HashSet;
 import java.util.List;

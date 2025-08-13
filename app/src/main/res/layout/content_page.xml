@@ -10,17 +10,51 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!-- Toolbar -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolBar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="#440870"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:titleTextColor="@android:color/white" />
+            app:titleTextColor="@android:color/white">
+            <!-- Title text -->
+            <EditText
+                android:id="@+id/titleEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:singleLine="true"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:clickable="false"
+                android:cursorVisible="false"
+                android:longClickable="false"
+                android:textIsSelectable="true"
+                android:hint="@string/empty"
+                />
+        </androidx.appcompat.widget.Toolbar>
 
         <!-- Content -->
+        <TextView
+            android:id="@+id/textViewContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:padding="24dp"
+            android:gravity="top|start"
+            android:textIsSelectable="true"
+            android:scrollbars="vertical"
+            android:overScrollMode="ifContentScrolls"
+            android:lineSpacingExtra="8dp"
+            android:scrollbarStyle="outsideOverlay"
+            android:visibility="visible"
+            />
         <EditText
-            android:id="@+id/editTextDocument"
+            android:id="@+id/editTextContent"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="top|start"
@@ -28,8 +62,7 @@
             android:background="#121212"
             android:textColor="@android:color/white"
             android:textSize="20sp"
-            android:hint="Start writing..."
-            android:inputType="textMultiLine|textCapSentences"
+            android:hint="@string/empty"
             android:overScrollMode="ifContentScrolls"
             android:scrollbars="vertical"
             android:fadeScrollbars="false"
@@ -37,12 +70,12 @@
             android:maxLines="10000"
             android:importantForAutofill="yes"
             android:imeOptions="flagNoExtractUi"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
-            android:clickable="false"
-            android:cursorVisible="false"
-            android:longClickable="false"
-            android:textIsSelectable="true" />
+            android:scrollbarStyle="outsideOverlay"
+            android:visibility="gone"
+            android:inputType="textMultiLine"
+            />
+
+
     </LinearLayout>
 
     <!-- Floating Action Button -->
@@ -52,7 +85,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:contentDescription="Add"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        app:srcCompat="@android:drawable/ic_menu_edit" />
 
 </FrameLayout>

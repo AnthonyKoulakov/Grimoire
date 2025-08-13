@@ -1,4 +1,4 @@
-package com.example.infobooth;
+package com.example.Grimoire.Settings;
 
 public class SettingOption {
     private String title;

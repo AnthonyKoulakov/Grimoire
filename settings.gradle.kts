@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Info Booth"
+rootProject.name = "Grimoire"
 include(":app")
  

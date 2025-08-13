@@ -1,4 +1,4 @@
-package com.example.infobooth;
+package com.example.Grimoire.Backend;
 
 import androidx.annotation.NonNull;
 
@@ -29,6 +29,8 @@ public class Page {
         this.title = title;
         content = "";
     }
+
+    public void setTitle(String title) { this.title = title;}
 
     public void setContent(String content){
         this.content = content;

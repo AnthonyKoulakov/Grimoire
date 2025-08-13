@@ -1,4 +1,4 @@
-package com.example.infobooth;
+package com.example.Grimoire.Settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;

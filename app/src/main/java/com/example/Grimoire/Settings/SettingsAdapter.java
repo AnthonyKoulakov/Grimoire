@@ -1,4 +1,4 @@
-package com.example.infobooth;
+package com.example.Grimoire.Settings;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -6,6 +6,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.Grimoire.R;
 
 import java.util.List;
 

@@ -1,18 +1,28 @@
-package com.example.infobooth;
+package com.example.Grimoire.MainScreen;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.LauncherActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.Grimoire.Backend.AppDatabase;
+import com.example.Grimoire.Backend.Page;
+import com.example.Grimoire.Backend.PageDao;
+import com.example.Grimoire.Settings.SettingsActivity;
+import com.example.Grimoire.ContentPage.ContentPage;
+import com.example.Grimoire.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -26,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private List<Page> itemList;
     private List<Page> filteredList;
     private MyAdapter adapter;
+    private ActivityResultLauncher<Intent> contentPageLauncher;
+
+    private String oldTitle = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,13 +81,25 @@ public class MainActivity extends AppCompatActivity {
         itemList = new ArrayList<>();
         filteredList = new ArrayList<>(itemList);
 
+        //Updating page info
+        contentPageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        String updatedTitle = result.getData().getStringExtra("updated_title");
+                        updateTitleInList(updatedTitle);
+                    }
+                });
+
         adapter = new MyAdapter(this, filteredList, new MyAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Page item) {
                 // Handle item click here
-                Intent intent = new Intent(MainActivity.this, WikiPage.class);
-                intent.putExtra("item_title", item.getTitle()); // pass the item title
-                startActivity(intent);
+                Intent intent = new Intent(MainActivity.this, ContentPage.class);
+                oldTitle = item.getTitle();
+                intent.putExtra("item_title", item.getTitle());
+                contentPageLauncher.launch(intent);
+
             }
             @Override
             public void onSelectionChanged(int selectedCount) {
@@ -222,5 +247,18 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
+
+    private void updateTitleInList(String updatedTitle) {
+        if (!oldTitle.equals(updatedTitle)){
+            for (Page page : filteredList) {
+                if (page.getTitle().equals(oldTitle)) {
+                    page.setTitle(updatedTitle);
+                    break;
+                }
+            }
+        }
+        filterList("");  // refreshes filteredList and notifies adapter
+    }
+
 
 }

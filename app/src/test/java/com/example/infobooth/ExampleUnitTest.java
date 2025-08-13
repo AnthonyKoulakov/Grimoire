@@ -1,4 +1,4 @@
-package com.example.infobooth;
+package com.example.Grimoire;
 
 import org.junit.Test;
 

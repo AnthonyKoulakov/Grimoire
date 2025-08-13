@@ -1,4 +1,4 @@
-package com.example.infobooth;
+package com.example.Grimoire.Backend;
 
 import android.content.Context;
 import androidx.room.Database;
