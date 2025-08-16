@@ -2,6 +2,7 @@ package com.example.Grimoire.Backend;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 import androidx.room.Delete;
@@ -27,5 +28,11 @@ public interface PageDao {
 
     @Query("SELECT * FROM pages WHERE title = :title LIMIT 1")
     Page getPageByTitle(String title);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertAll(List<Page> pages);
+
+    @Query("DELETE FROM pages")
+    void clearAllPages();
 }
 

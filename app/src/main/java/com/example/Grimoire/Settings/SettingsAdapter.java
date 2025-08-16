@@ -4,49 +4,49 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.Grimoire.R;
-
 import java.util.List;
 
-public class SettingsAdapter extends RecyclerView.Adapter<SettingsAdapter.ViewHolder> {
+public class SettingsAdapter extends RecyclerView.Adapter<SettingsAdapter.SettingViewHolder> {
 
-    private List<SettingOption> options;
+    private List<SettingOption> optionsList;
 
-    public SettingsAdapter(List<SettingOption> options) {
-        this.options = options;
+    public SettingsAdapter(List<SettingOption> optionsList) {
+        this.optionsList = optionsList;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView title, description;
-        public ViewHolder(View itemView) {
-            super(itemView);
-            title = itemView.findViewById(R.id.setting_title);
-            description = itemView.findViewById(R.id.setting_description);
-        }
+    @NonNull
+    @Override
+    public SettingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_setting_option, parent, false);
+        return new SettingViewHolder(view);
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_setting, parent, false);
-        return new ViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        SettingOption option = options.get(position);
-        holder.title.setText(option.getTitle());
-        holder.description.setText(option.getDescription());
-
-        holder.itemView.setOnClickListener(v -> option.getAction().run());
+    public void onBindViewHolder(@NonNull SettingViewHolder holder, int position) {
+        SettingOption currentOption = optionsList.get(position);
+        holder.titleTextView.setText(currentOption.getTitle());
+        holder.descriptionTextView.setText(currentOption.getDescription());
+        holder.itemView.setOnClickListener(v -> {
+            currentOption.getClickAction().run();
+        });
     }
 
     @Override
     public int getItemCount() {
-        return options.size();
+        return optionsList.size();
+    }
+
+    static class SettingViewHolder extends RecyclerView.ViewHolder {
+        TextView titleTextView;
+        TextView descriptionTextView;
+
+        public SettingViewHolder(@NonNull View itemView) {
+            super(itemView);
+            titleTextView = itemView.findViewById(R.id.setting_title);
+            descriptionTextView = itemView.findViewById(R.id.setting_description);
+        }
     }
 }
-

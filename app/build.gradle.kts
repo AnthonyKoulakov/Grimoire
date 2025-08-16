@@ -37,6 +37,7 @@ android {
 dependencies {
 
     implementation(libs.appcompat)
+    implementation(libs.gson)
     implementation(libs.material)
     implementation(libs.constraintlayout)
     implementation(libs.navigation.fragment)

@@ -35,6 +35,16 @@
                 android:textIsSelectable="true"
                 android:hint="@string/empty"
                 />
+            <ImageButton
+                android:id="@+id/btnSaveContent"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end|center_vertical"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:src="@android:drawable/ic_menu_save"
+                android:visibility="gone"/>
+
         </androidx.appcompat.widget.Toolbar>
 
         <!-- Content -->
@@ -85,6 +95,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        app:srcCompat="@android:drawable/ic_menu_edit" />
+        app:srcCompat="@drawable/ic_baseline_edit_24" />
 
 </FrameLayout>

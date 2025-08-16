@@ -3,10 +3,13 @@ package com.example.Grimoire.MainScreen;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.LauncherActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -123,23 +126,48 @@ public class MainActivity extends AppCompatActivity {
             builder.setPositiveButton("Add", (dialog, which) -> {
                 String itemName = input.getText().toString().trim();
                 if (!itemName.isEmpty()) {
-                    //add page to db
                     new Thread(() -> {
-                        Page newPage = new Page(itemName);
-                        pageDao.insert(newPage);
+                        // Check if the page already exists in the database
+                        Page existingPage = pageDao.getPageByTitle(itemName);
+                        if (existingPage == null) {
+                            // Page doesn't exist, so we can add it
+                            Page newPage = new Page(itemName);
+                            pageDao.insert(newPage);
 
-                        runOnUiThread(() -> {
-                            itemList.add(newPage);
-                            filterList("");
-                        });
+                            runOnUiThread(() -> {
+                                itemList.add(newPage);
+                                filterList("");
+                            });
+                        } else {
+                            // Page already exists, show an error message
+                            runOnUiThread(() -> {
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setTitle("Error")
+                                        .setMessage("A page with this name already exists.")
+                                        .setPositiveButton("OK", null)
+                                        .show();
+                            });
+                        }
                     }).start();
-
                 }
             });
 
             builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
-            builder.show();
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+            // Use a Handler to post a delayed action to show the keyboard.
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    input.requestFocus();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    if (imm != null) {
+                        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+                    }
+                }
+            }, 200); // 200ms delay
         });
     }
 
@@ -259,6 +287,25 @@ public class MainActivity extends AppCompatActivity {
         }
         filterList("");  // refreshes filteredList and notifies adapter
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (itemList == null) return; // safety check
+
+        new Thread(() -> {
+            List<Page> allPages = AppDatabase.getDatabase(this).pageDao().getAllPages();
+
+            runOnUiThread(() -> {
+                itemList.clear();
+                itemList.addAll(allPages);
+                filterList(""); // rebuilds filteredList and notifies adapter
+            });
+        }).start();
+    }
+
+
 
 
 }

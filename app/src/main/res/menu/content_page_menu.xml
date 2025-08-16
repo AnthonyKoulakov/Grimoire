@@ -7,4 +7,10 @@
         android:title="Edit"
         android:icon="@drawable/ic_baseline_edit_24"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_save"
+        android:icon="@android:drawable/ic_menu_save"
+        android:title="Save"
+        app:showAsAction="always"
+        android:visible="false"/> <!-- Hidden by default -->
 </menu>

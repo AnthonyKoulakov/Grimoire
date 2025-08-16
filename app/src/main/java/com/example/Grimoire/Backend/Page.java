@@ -43,4 +43,8 @@ public class Page {
     public String getContent(){
         return content;
     }
+
+    public int getId(){return id;}
+
+    public int size(){return content.length();}
 }
