@@ -1,5 +1,6 @@
 package com.example.Grimoire.ContentPage;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
@@ -36,6 +37,8 @@ import android.text.InputType;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,12 +114,21 @@ public class ContentPage extends AppCompatActivity {
     }
 
     // Saves on close
-    @Override
     protected void onPause() {
         super.onPause();
-        // Save content if in editing mode or just always save latest content
         EditText editText = findViewById(R.id.editTextContent);
         savePageContent(editText.getText().toString());
+
+        new Thread(() -> {
+            boolean created = createPagesFromLinks(page.getContent());
+            if (created) {
+                runOnUiThread(() -> {
+                    Intent intent = new Intent();
+                    intent.putExtra("new_pages_created", true);
+                    setResult(RESULT_OK, intent);
+                });
+            }
+        }).start();
     }
 
     private void savePageContent(String text) {
@@ -166,36 +178,56 @@ public class ContentPage extends AppCompatActivity {
 
                 return true;
             }else{
-                isEditingTitle = false;
-                // Disable editing for the title
-                titleEditText.setFocusable(false);
-                titleEditText.setFocusableInTouchMode(false);
-                titleEditText.setClickable(false);
-                titleEditText.setCursorVisible(false);
-                titleEditText.setLongClickable(false);
-                titleEditText.setTextIsSelectable(false);
-
-
-                // hide keyboard
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(titleEditText.getWindowToken(), 0);
-
-                //Icon changes
-                item.setIcon(android.R.drawable.ic_menu_edit);
 
                 //database update
                 new Thread(() -> {
                     AppDatabase db = AppDatabase.getDatabase(this);
                     PageDao pageDao = db.pageDao();
 
-                    page.setTitle(titleEditText.getText().toString());
-                    pageDao.update(page);
+                    String newTitle = titleEditText.getText().toString();
 
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("updated_title", titleEditText.getText().toString());
-                    setResult(RESULT_OK, resultIntent);
+                    // Check for duplicate title (case-insensitive)
+                    Page existing = pageDao.getPageByTitle(newTitle);
 
+                    if (existing != null && existing.getId() != page.getId()) {
+                        // Already exists → show popup on UI thread
+                        runOnUiThread(() -> {
+                            new AlertDialog.Builder(this)
+                                    .setTitle("Duplicate Title")
+                                    .setMessage("A page with this title already exists. Please choose another title.")
+                                    .setPositiveButton("OK", null)
+                                    .show();
+                        });
+                    } else {
+                        // No duplicate → safe to update
+                        page.setTitle(newTitle);
+                        pageDao.update(page);
+
+                        runOnUiThread(() -> {
+                            Intent resultIntent = new Intent();
+                            resultIntent.putExtra("updated_title", newTitle);
+                            setResult(RESULT_OK, resultIntent);
+
+                            isEditingTitle = false;
+
+                            // Disable editing for the title
+                            titleEditText.setFocusable(false);
+                            titleEditText.setFocusableInTouchMode(false);
+                            titleEditText.setClickable(false);
+                            titleEditText.setCursorVisible(false);
+                            titleEditText.setLongClickable(false);
+                            titleEditText.setTextIsSelectable(false);
+
+                            // hide keyboard
+                            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                            imm.hideSoftInputFromWindow(titleEditText.getWindowToken(), 0);
+
+                            // Icon changes
+                            item.setIcon(android.R.drawable.ic_menu_edit);
+                        });
+                    }
                 }).start();
+
 
             }
         }
@@ -280,20 +312,57 @@ public class ContentPage extends AppCompatActivity {
 
     private void openPage(String title) {
         new Thread(() -> {
-            Page linkedPage = AppDatabase.getDatabase(this).pageDao().getPageByTitle(title);
+            AppDatabase db = AppDatabase.getDatabase(this);
+            PageDao pageDao = db.pageDao();
 
+            // Try to find the page
+            Page linkedPage = pageDao.getPageByTitle(title);
+
+            if (linkedPage == null) {
+                // Page doesn't exist, create it
+                linkedPage = new Page(title);
+                pageDao.insert(linkedPage);
+                linkedPage = pageDao.getPageByTitle(title);
+            }
+
+            Page finalLinkedPage = linkedPage; // for use in UI thread
             runOnUiThread(() -> {
-                if (linkedPage != null) {
-                    Intent intent = new Intent(ContentPage.this, ContentPage.class);
-                    intent.putExtra("item_title", linkedPage.getTitle());
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(ContentPage.this, "Page not found: " + title, Toast.LENGTH_SHORT).show();
-                }
+                Intent intent = new Intent(ContentPage.this, ContentPage.class);
+                intent.putExtra("item_title", finalLinkedPage.getTitle());
+                startActivity(intent);
             });
         }).start();
     }
 
+    private boolean createPagesFromLinks(String content) {
+        final boolean[] anyCreated = {false};
+        AppDatabase db = AppDatabase.getDatabase(this);
+        PageDao pageDao = db.pageDao();
+
+        List<String> links = extractAllLinks(content);
+        for (String link : links) {
+            Page existing = pageDao.getPageByTitle(link);
+            if (existing == null) {
+                pageDao.insert(new Page(link));
+                anyCreated[0] = true;
+            }
+        }
+        return anyCreated[0];
+    }
+
+    private List<String> extractAllLinks(String content) {
+        List<String> links = new ArrayList<String>();
+
+        Pattern pattern = Pattern.compile("\\[(.+?)\\]\\((.+?)\\)");
+        Matcher matcher = pattern.matcher(content);
+
+        while (matcher.find()) {
+            String target = matcher.group(2);
+            links.add(target);
+        }
+
+        return links;
+    }
 
 
 }

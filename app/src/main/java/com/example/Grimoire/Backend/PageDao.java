@@ -26,13 +26,14 @@ public interface PageDao {
     @Query("SELECT * FROM pages WHERE id = :id LIMIT 1")
     Page getPageById(int id);
 
-    @Query("SELECT * FROM pages WHERE title = :title LIMIT 1")
-    Page getPageByTitle(String title);
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<Page> pages);
 
     @Query("DELETE FROM pages")
     void clearAllPages();
+
+    @Query("SELECT * FROM pages WHERE title = :title COLLATE NOCASE LIMIT 1")
+    Page getPageByTitle(String title);
+
 }
 
