@@ -5,11 +5,16 @@ import android.app.AlertDialog;
 import android.app.LauncherActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -17,6 +22,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,11 +32,15 @@ import com.example.Grimoire.Backend.PageDao;
 import com.example.Grimoire.Settings.SettingsActivity;
 import com.example.Grimoire.ContentPage.ContentPage;
 import com.example.Grimoire.R;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -304,6 +314,125 @@ public class MainActivity extends AppCompatActivity {
             });
         }).start();
     }
+
+    protected void showTagDialog(Page target) {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View dialogView = inflater.inflate(R.layout.tag_menu, null);
+
+        ChipGroup chipGroup = dialogView.findViewById(R.id.tag_chip_group);
+
+        // Collect unique tags
+        Set<String> uniqueTags = new HashSet<>();
+        for (Page page : itemList) {
+            List<String> pageTags = page.getTags();
+            if (pageTags != null) {
+                uniqueTags.addAll(pageTags);
+            }
+        }
+
+        // Add chips
+        for (String tag : uniqueTags) {
+            Chip chip = createTagChip(tag, target.getTags().contains(tag));
+            chipGroup.addView(chip);
+        }
+
+        // Build dialog
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Select Tags")
+                .setView(dialogView)
+                .setPositiveButton("OK", (d, which) -> {
+                    List<String> selected = new ArrayList<>();
+                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
+                        Chip chip = (Chip) chipGroup.getChildAt(i);
+                        if (chip.isChecked()) {
+                            selected.add(chip.getText().toString());
+                        }
+                    }
+                    // Update the target's tags
+                    target.setTags(selected);
+
+                    // Optionally, update in the database
+                    new Thread(() -> {
+                        AppDatabase db = AppDatabase.getDatabase(MainActivity.this);
+                        db.pageDao().update(target); // make sure your DAO has an update method
+                    }).start();
+                })
+
+                .setNegativeButton("Cancel", null)
+                .setNeutralButton("Add", null) // we'll override
+                .create();
+
+        dialog.show();
+
+        // Override Add button so it doesn't dismiss dialog
+        Button addButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+        addButton.setOnClickListener(v -> {
+            final EditText input = new EditText(MainActivity.this);
+            input.setHint("Enter new tag");
+
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Add New Tag")
+                    .setView(input)
+                    .setPositiveButton("Add", (addDialog, addWhich) -> {
+                        String newTag = input.getText().toString().trim();
+                        if (!newTag.isEmpty()) {
+                            // Avoid duplicates
+                            boolean exists = false;
+                            for (int i = 0; i < chipGroup.getChildCount(); i++) {
+                                Chip chip = (Chip) chipGroup.getChildAt(i);
+                                if (chip.getText().toString().equalsIgnoreCase(newTag)) {
+                                    exists = true;
+                                    chip.setChecked(true); // check it if it already exists
+                                    break;
+                                }
+                            }
+                            if (!exists) {
+                                Chip chip = createTagChip(newTag, true);
+                                chipGroup.addView(chip);
+                            }
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
+    }
+
+
+    private Chip createTagChip(String text, boolean checked) {
+        Chip chip = new Chip(this);
+        chip.setText(text);
+        chip.setCheckable(true);
+        chip.setChecked(checked);
+
+        // Colors from resources
+        int selectedColor = ContextCompat.getColor(this, R.color.tag_selected_color);
+        int unselectedColor = ContextCompat.getColor(this, R.color.tag_unselected_color);
+        int selectedTextColor = ContextCompat.getColor(this, R.color.tag_selected_text);
+        int unselectedTextColor = ContextCompat.getColor(this, R.color.tag_unselected_text);
+
+        // Initial colors
+        chip.setChipBackgroundColor(ColorStateList.valueOf(checked ? selectedColor : unselectedColor));
+        chip.setTextColor(checked ? selectedTextColor : unselectedTextColor);
+
+        chip.setCloseIconVisible(false);
+
+        // Add checkmark only
+        chip.setCheckedIconVisible(true);
+        chip.setCheckedIcon(ContextCompat.getDrawable(this, R.drawable.ic_check));
+        chip.setCheckedIconTint(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.tag_checkmark_color)));
+
+        // Dynamic change on selection
+        chip.setOnCheckedChangeListener((button, isChecked) -> {
+            Chip c = (Chip) button;
+            c.setChipBackgroundColor(ColorStateList.valueOf(isChecked ? selectedColor : unselectedColor));
+            c.setTextColor(isChecked ? selectedTextColor : unselectedTextColor);
+        });
+
+        return chip;
+    }
+
+
+
 
 
 

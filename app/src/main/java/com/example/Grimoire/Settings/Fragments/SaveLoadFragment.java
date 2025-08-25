@@ -149,6 +149,14 @@ public class SaveLoadFragment extends Fragment {
                 Page[] pagesArray = gson.fromJson(jsonBuilder.toString(), Page[].class);
                 List<Page> pages = Arrays.asList(pagesArray);
 
+                // Make sure tags are not null for old JSON
+                for (Page p : pagesArray) {
+                    if (p.getTags() == null) {
+                        p.setTags(new ArrayList<>());
+                    }
+                    pages.add(p);
+                }
+
                 AppDatabase db = AppDatabase.getDatabase(getContext());
                 db.pageDao().clearAllPages(); //Clear db
                 db.pageDao().insertAll(pages); //import from file

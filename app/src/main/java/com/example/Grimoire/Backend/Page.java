@@ -6,12 +6,16 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity(tableName = "pages")
 public class Page {
     @PrimaryKey(autoGenerate = true)
     public int id;
     public String title;
     public String content;
+    public List<String> tags = new ArrayList<>();
 
     // Full constructor (used by Room)
     public Page(int id, @NonNull String title, String content) {
@@ -46,5 +50,12 @@ public class Page {
 
     public int getId(){return id;}
 
+    public void addTag(String tag){tags.add(tag);}
+
+    public void setTags(List<String> tags){this.tags = tags;}
+
+    public List<String> getTags(){return tags;}
+
     public int size(){return content.length();}
+
 }

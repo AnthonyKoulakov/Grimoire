@@ -4,4 +4,11 @@
     <color name="white">#FFFFFFFF</color>
     <color name="link_has_content">#1E88E5</color>
     <color name="link_no_content">#E53935</color>
+    <color name="link_has_todo">#FFEB3B</color>
+    <color name="tag_selected_color">#39264E</color>
+    <color name="tag_unselected_color">#424242</color>
+    <color name="tag_selected_text">#FFFFFF</color>
+    <color name="tag_unselected_text">#CCCCCC</color>
+    <color name="tag_checkmark_color">#FFFFFF</color>
+
 </resources>

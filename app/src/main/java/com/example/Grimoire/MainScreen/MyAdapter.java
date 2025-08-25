@@ -54,15 +54,30 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView textView;
+        public TextView tagView;
 
         public ViewHolder(View view) {
             super(view);
             textView = view.findViewById(R.id.text_item);
+            tagView = view.findViewById(R.id.text_tag);
         }
 
-        public void bind(final Page page, final boolean isSelected, final Supplier<Boolean> isSelectionMode, final OnItemClickListener listener, final Runnable toggleSelection) {
+        public void bind(Context context, final Page page, final boolean isSelected, final Supplier<Boolean> isSelectionMode, final OnItemClickListener listener, final Runnable toggleSelection) {
             textView.setText(page.getTitle());
 
+            // Show tag info
+            List<String> tags = page.getTags();
+            if (tags != null && !tags.isEmpty()) {
+                String tagText = tags.get(0);
+                if (tags.size() > 1) {
+                    tagText += " +" + (tags.size() - 1);
+                }
+                tagView.setText(tagText);
+            } else {
+                tagView.setText("+ Add Tag");
+            }
+
+            // Background highlight for selection
             itemView.setBackgroundColor(isSelected ? Color.DKGRAY : Color.TRANSPARENT);
 
             itemView.setOnClickListener(v -> {
@@ -72,6 +87,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                     listener.onItemClick(page);
                 }
             });
+
+            tagView.setOnClickListener(v -> {
+                if (context instanceof MainActivity) {
+                    ((MainActivity) context).showTagDialog(page);
+                }
+            });
+
 
             itemView.setOnLongClickListener(v -> {
                 toggleSelection.run();
@@ -94,7 +116,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         Page page= data.get(position);
         boolean isSelected= selected.contains(page);
 
-        holder.bind(page, isSelected, () -> selectionMode, listener, () -> {
+        holder.bind(context, page, isSelected, () -> selectionMode, listener, () -> {
             if (!selectionMode){
                 selectionMode = true;
             }
