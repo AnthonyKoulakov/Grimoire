@@ -40,8 +40,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -188,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
         MenuItem searchItem = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) searchItem.getActionView();
 
-        searchView.setQueryHint("Info Booth");
+        searchView.setQueryHint("Grimoire");
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -330,10 +332,39 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // Track selection order
+        Map<Chip, Integer> selectionOrder = new HashMap<>();
+        int[] counter = {0};
+
         // Add chips
         for (String tag : uniqueTags) {
-            Chip chip = createTagChip(tag, target.getTags().contains(tag));
+            boolean initiallyChecked = target.getTags().contains(tag);
+            Chip chip = createTagChip(tag, initiallyChecked);
             chipGroup.addView(chip);
+
+            // Track initially checked chips
+            if (initiallyChecked) {
+                selectionOrder.put(chip, counter[0]++);
+            }
+
+            // Update selection order on check/uncheck
+            chip.setOnCheckedChangeListener((button, isChecked) -> {
+                Chip c = (Chip) button;
+
+                // Keep your color updates here
+                int selectedColor = ContextCompat.getColor(this, R.color.tag_selected_color);
+                int unselectedColor = ContextCompat.getColor(this, R.color.tag_unselected_color);
+                int selectedTextColor = ContextCompat.getColor(this, R.color.tag_selected_text);
+                int unselectedTextColor = ContextCompat.getColor(this, R.color.tag_unselected_text);
+                c.setChipBackgroundColor(ColorStateList.valueOf(isChecked ? selectedColor : unselectedColor));
+                c.setTextColor(isChecked ? selectedTextColor : unselectedTextColor);
+
+                if (isChecked) {
+                    selectionOrder.put(c, counter[0]++);
+                } else {
+                    selectionOrder.remove(c);
+                }
+            });
         }
 
         // Build dialog
@@ -341,25 +372,26 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("Select Tags")
                 .setView(dialogView)
                 .setPositiveButton("OK", (d, which) -> {
-                    List<String> selected = new ArrayList<>();
-                    for (int i = 0; i < chipGroup.getChildCount(); i++) {
-                        Chip chip = (Chip) chipGroup.getChildAt(i);
-                        if (chip.isChecked()) {
-                            selected.add(chip.getText().toString());
-                        }
-                    }
-                    // Update the target's tags
-                    target.setTags(selected);
+                    List<Map.Entry<Chip, Integer>> entries = new ArrayList<>(selectionOrder.entrySet());
+                    entries.sort(Comparator.comparingInt(Map.Entry::getValue));
 
-                    // Optionally, update in the database
+                    List<String> selectedTags = new ArrayList<>();
+                    for (Map.Entry<Chip, Integer> entry : entries) {
+                        selectedTags.add(entry.getKey().getText().toString());
+                    }
+
+                    // Update the target's tags in selection order
+                    target.setTags(selectedTags);
+
                     new Thread(() -> {
                         AppDatabase db = AppDatabase.getDatabase(MainActivity.this);
-                        db.pageDao().update(target); // make sure your DAO has an update method
+                        db.pageDao().update(target);
+                        runOnUiThread(() -> adapter.notifyDataSetChanged());
                     }).start();
                 })
 
                 .setNegativeButton("Cancel", null)
-                .setNeutralButton("Add", null) // we'll override
+                .setNeutralButton("Add", null)
                 .create();
 
         dialog.show();

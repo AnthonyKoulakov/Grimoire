@@ -35,5 +35,8 @@ public interface PageDao {
     @Query("SELECT * FROM pages WHERE title = :title COLLATE NOCASE LIMIT 1")
     Page getPageByTitle(String title);
 
+    @Update
+    void updateAll(List<Page> pages);
+
 }
 

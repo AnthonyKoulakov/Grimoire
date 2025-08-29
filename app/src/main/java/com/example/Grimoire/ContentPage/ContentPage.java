@@ -200,8 +200,12 @@ public class ContentPage extends AppCompatActivity {
                         });
                     } else {
                         // No duplicate → safe to update
+                        String oldTitle= page.getTitle();
                         page.setTitle(newTitle);
                         pageDao.update(page);
+
+                        updatePageTitleAndReferences(db, oldTitle, newTitle);
+
 
                         runOnUiThread(() -> {
                             Intent resultIntent = new Intent();
@@ -273,11 +277,20 @@ public class ContentPage extends AppCompatActivity {
                         .pageDao()
                         .getPageByTitle(targetTitle);
 
-                boolean hasContent = linkedPage != null && linkedPage.size() > 0;
-                int newColor = ContextCompat.getColor(ContentPage.this,
-                        hasContent ? R.color.link_has_content : R.color.link_no_content);
+                int newColor;
 
-                runOnUiThread(() -> {
+                if (linkedPage == null || linkedPage.getContent() == null || linkedPage.getContent().trim().isEmpty()) {
+                    // No content
+                    newColor = ContextCompat.getColor(ContentPage.this, R.color.link_no_content);
+                } else if (linkedPage.getContent().contains("//")) {
+                    // Contains a TODO/comment
+                    newColor = ContextCompat.getColor(ContentPage.this, R.color.link_has_todo);
+                } else {
+                    // Has content but no TODO
+                    newColor = ContextCompat.getColor(ContentPage.this, R.color.link_has_content);
+                }
+
+            runOnUiThread(() -> {
                     // Remove old clickable span and set new color
                     builder.removeSpan(clickableSpan);
                     builder.setSpan(new ClickableSpan() {
@@ -364,5 +377,23 @@ public class ContentPage extends AppCompatActivity {
         return links;
     }
 
+    public void updatePageTitleAndReferences(AppDatabase db, String oldTitle, String newTitle) {
+        // Update all references in content fields
+        List<Page> allPages = db.pageDao().getAllPages();
+        List<Page> modified = new ArrayList<>();
+
+        for (Page p : allPages) {
+            String content = p.getContent();
+            if (content != null && content.contains("](" + oldTitle + ")")) {
+                String updated = content.replace("](" + oldTitle + ")", "](" + newTitle + ")");
+                p.setContent(updated);
+                modified.add(p);
+            }
+        }
+
+        if (!modified.isEmpty()) {
+            db.pageDao().updateAll(modified);
+        }
+    }
 
 }

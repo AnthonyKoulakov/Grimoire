@@ -1,5 +1,7 @@
 package com.example.Grimoire.Backend;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import androidx.room.Entity;
@@ -52,9 +54,13 @@ public class Page {
 
     public void addTag(String tag){tags.add(tag);}
 
-    public void setTags(List<String> tags){this.tags = tags;}
+    public void setTags(List<String> tags){
+        Log.d("IN", tags.toString());
+        this.tags = tags;}
 
-    public List<String> getTags(){return tags;}
+    public List<String> getTags(){
+        Log.d("OUT", tags.toString());
+        return tags;}
 
     public int size(){return content.length();}
 

@@ -10,6 +10,9 @@ import androidx.room.TypeConverters;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Database(entities = {Page.class}, version = 2)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
@@ -39,5 +42,4 @@ public abstract class AppDatabase extends RoomDatabase {
             database.execSQL("ALTER TABLE pages ADD COLUMN tags TEXT DEFAULT ''");
         }
     };
-
 }

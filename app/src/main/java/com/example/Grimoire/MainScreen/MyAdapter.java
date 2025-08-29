@@ -8,6 +8,7 @@ import android.widget.TextView;
 import android.graphics.Color;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.Grimoire.Backend.Page;
@@ -64,6 +65,20 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
         public void bind(Context context, final Page page, final boolean isSelected, final Supplier<Boolean> isSelectionMode, final OnItemClickListener listener, final Runnable toggleSelection) {
             textView.setText(page.getTitle());
+
+            String content = page.getContent(); // get the content
+
+            if (content == null || content.trim().isEmpty()) {
+                // No content
+                textView.setTextColor(ContextCompat.getColor(context, R.color.link_no_content));
+            } else if (content.contains("//")) {
+                // Has todo
+                textView.setTextColor(ContextCompat.getColor(context, R.color.link_has_todo));
+            } else {
+                // Optional: default color
+                textView.setTextColor(ContextCompat.getColor(context, R.color.white));
+            }
+
 
             // Show tag info
             List<String> tags = page.getTags();
